@@ -9,13 +9,28 @@ export function envOrThrow(key: string) {
     return value;
 }
 
-export const config = {
+type APIConfig = {
+    jwtSecret: string;
+    port: number;
+}
+
+type DBConfig = {
+    url: string;
+    migrationConfig: MigrationConfig;
+}
+
+type Config = {
+    db: DBConfig;
+    api: APIConfig;
+};
+
+export const config: Config = {
     db: {
         url: envOrThrow("DATABASE_URL"),
-        migrationConfig: {migrationsFolder: "./src/db/migrations"} satisfies MigrationConfig,
+        migrationConfig: {migrationsFolder: "./src/db/migrations"},
     },
     api: {
         jwtSecret: envOrThrow("JWT_SECRET"),
-        port: 8080
-    }
+        port: Number(envOrThrow("API_PORT"))
+    },
 } as const;
