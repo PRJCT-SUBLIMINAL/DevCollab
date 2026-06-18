@@ -1,7 +1,7 @@
 import express from "express";
 
 import {
-    setupMigration,
+    // setupMigration,
     setupResponseLogs,
     setupAPI,
     setupTestPage,
@@ -12,7 +12,7 @@ import {
 const app = express();
 
 async function main() {
-    await setupMigration();
+    // await setupMigration();
     setupResponseLogs(app);
     setupAPI(app);
     setupTestPage(app);

@@ -13,7 +13,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function checkPasswordHash(password: string, hash: string): Promise<boolean> {
     try {
-        const isVerified = argon2.verify(hash, password);
+        const isVerified = await argon2.verify(hash, password);
         return isVerified;
     } catch {
         throw new UnauthorizedError("Failed to check password hash");

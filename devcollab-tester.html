@@ -1,345 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DevCollab API Tester</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DevCollab API Tester</title>
 
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0f1117;
-      color: #e2e8f0;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-    }
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    margin: 0;
+    padding: 2rem;
+  }
 
-    header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
-    header h1 { font-size: 1.75rem; font-weight: 700; color: #a78bfa; }
-    header p  { font-size: 0.9rem; color: #64748b; margin-top: 0.35rem; }
+  h1 {
+    text-align: center;
+    color: #a78bfa;
+  }
 
-    .base-url-bar {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #1e2130;
-      border: 1px solid #2d3148;
-      border-radius: 8px;
-      padding: 0.6rem 1rem;
-      margin-bottom: 2rem;
-      max-width: 700px;
-      margin-inline: auto;
-    }
-    .base-url-bar label { font-size: 0.75rem; color: #64748b; white-space: nowrap; }
-    .base-url-bar input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #e2e8f0;
-      font-size: 0.9rem;
-      font-family: monospace;
-    }
+  .base {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
 
-    .cards { display: flex; flex-direction: column; gap: 1.5rem; max-width: 700px; margin-inline: auto; }
+  input {
+    width: 400px;
+    padding: 10px;
+    background: #1e2130;
+    border: 1px solid #2d3148;
+    color: white;
+    border-radius: 6px;
+    font-family: monospace;
+  }
 
-    .card {
-      background: #1e2130;
-      border: 1px solid #2d3148;
-      border-radius: 12px;
-      overflow: hidden;
-    }
+  .card {
+    background: #1e2130;
+    border: 1px solid #2d3148;
+    border-radius: 10px;
+    margin: 1rem auto;
+    max-width: 600px;
+    padding: 1rem;
+  }
 
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid #2d3148;
-      cursor: pointer;
-      user-select: none;
-    }
-    .card-header:hover { background: #252840; }
+  .title {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-weight: bold;
+  }
 
-    .method {
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 0.25rem 0.55rem;
-      border-radius: 4px;
-      font-family: monospace;
-      letter-spacing: 0.05em;
-    }
-    .method.post { background: #1d4ed8; color: #bfdbfe; }
-    .method.get  { background: #15803d; color: #bbf7d0; }
-    .method.put  { background: #b45309; color: #fde68a; }
-    .method.del  { background: #991b1b; color: #fecaca; }
+  .method {
+    color: #6ee7b7;
+    font-family: monospace;
+  }
 
-    .card-header .path { font-family: monospace; font-size: 0.9rem; color: #c4b5fd; }
-    .card-header .desc { font-size: 0.8rem; color: #64748b; margin-left: auto; }
-    .card-header .chevron { font-size: 0.7rem; color: #475569; transition: transform 0.2s; }
-    .card.open .chevron { transform: rotate(90deg); }
+  input.field {
+    width: 100%;
+    margin: 5px 0;
+  }
 
-    .card-body { display: none; padding: 1.25rem; }
-    .card.open .card-body { display: block; }
+  button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #7c3aed;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+  }
 
-    .field { margin-bottom: 1rem; }
-    .field label { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.35rem; }
-    .field input, .field textarea {
-      width: 100%;
-      background: #0f1117;
-      border: 1px solid #2d3148;
-      border-radius: 6px;
-      color: #e2e8f0;
-      font-size: 0.875rem;
-      padding: 0.5rem 0.75rem;
-      font-family: monospace;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .field input:focus, .field textarea:focus { border-color: #7c3aed; }
-    .field textarea { resize: vertical; min-height: 90px; }
-
-    .send-btn {
-      background: #7c3aed;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 0.5rem 1.25rem;
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .send-btn:hover { background: #6d28d9; }
-    .send-btn:active { background: #5b21b6; }
-    .send-btn:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
-
-    .response-box {
-      margin-top: 1rem;
-      background: #0f1117;
-      border: 1px solid #2d3148;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .response-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid #1e2130;
-      font-size: 0.75rem;
-    }
-    .status-badge {
-      font-weight: 700;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      font-family: monospace;
-    }
-    .status-2xx { background: #14532d; color: #86efac; }
-    .status-4xx { background: #7f1d1d; color: #fca5a5; }
-    .status-5xx { background: #78350f; color: #fcd34d; }
-    .status-err { background: #1e3a5f; color: #93c5fd; }
-    .response-time { color: #475569; margin-left: auto; }
-
-    .response-body {
-      padding: 0.75rem;
-      font-family: monospace;
-      font-size: 0.8rem;
-      white-space: pre-wrap;
-      word-break: break-all;
-      color: #a5f3fc;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
-    .section-title {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #475569;
-      margin-bottom: 0.75rem;
-    }
-
-    .curl-box {
-      margin-top: 0.75rem;
-      background: #0a0c14;
-      border: 1px solid #1e2130;
-      border-radius: 6px;
-      padding: 0.6rem 0.75rem;
-      font-family: monospace;
-      font-size: 0.75rem;
-      color: #6ee7b7;
-      white-space: pre-wrap;
-      word-break: break-all;
-      cursor: pointer;
-      position: relative;
-    }
-    .curl-box::after {
-      content: 'click to copy';
-      position: absolute;
-      top: 0.4rem;
-      right: 0.6rem;
-      font-size: 0.65rem;
-      color: #334155;
-    }
-    .curl-box.copied::after { content: 'copied!'; color: #86efac; }
-  </style>
+  pre {
+    background: #0f1117;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+</style>
 </head>
+
 <body>
 
-<header>
-  <h1>⚡ DevCollab API Tester</h1>
-  <p>Manually fire requests at your local backend</p>
-</header>
+<h1>⚡ DevCollab API Tester</h1>
 
-<!-- Base URL bar -->
-<div class="base-url-bar">
-  <label>BASE URL</label>
-  <input id="baseUrl" type="text" value="http://localhost:8080" />
+<div class="base">
+  <input id="baseUrl" value="http://localhost:8080" />
 </div>
 
-<div class="cards" id="cards">
-
-  <!-- POST /api/users -->
-  <div class="card open" data-method="POST" data-path="/api/users">
-    <div class="card-header" onclick="toggleCard(this)">
-      <span class="method post">POST</span>
-      <span class="path">/api/users</span>
-      <span class="desc">Create a new user</span>
-      <span class="chevron">▶</span>
-    </div>
-    <div class="card-body">
-      <p class="section-title">Request Body (JSON)</p>
-      <div class="field">
-        <label>email</label>
-        <input type="email" placeholder="tyler@example.com" data-key="email" />
-      </div>
-      <div class="field">
-        <label>password</label>
-        <input type="text" placeholder="supersecret" data-key="password" />
-      </div>
-
-      <button class="send-btn" onclick="sendRequest(this)">Send Request</button>
-
-      <div class="response-box" style="display:none"></div>
-      <div class="curl-box" style="display:none" onclick="copyCurl(this)"></div>
-    </div>
-  </div>
-
-  <!-- Placeholder card — duplicate / extend as you add routes -->
-  <!--
-  <div class="card" data-method="GET" data-path="/api/something">
-    <div class="card-header" onclick="toggleCard(this)">
-      <span class="method get">GET</span>
-      <span class="path">/api/something</span>
-      <span class="desc">Description</span>
-      <span class="chevron">▶</span>
-    </div>
-    <div class="card-body">
-      ...fields...
-      <button class="send-btn" onclick="sendRequest(this)">Send Request</button>
-      <div class="response-box" style="display:none"></div>
-      <div class="curl-box" style="display:none" onclick="copyCurl(this)"></div>
-    </div>
-  </div>
-  -->
-
-</div>
+<div id="app"></div>
 
 <script>
-  function toggleCard(header) {
-    header.closest('.card').classList.toggle('open');
+const API = [
+  {
+    method: "POST",
+    path: "/auth/register",
+    title: "Register User",
+    fields: [
+      { key: "email", type: "text", placeholder: "email" },
+      { key: "password", type: "password", placeholder: "password" }
+    ]
+  },
+  {
+    method: "POST",
+    path: "/auth/login",
+    title: "Login User",
+    fields: [
+      { key: "email", type: "text", placeholder: "email" },
+      { key: "password", type: "password", placeholder: "password" }
+    ]
   }
+];
 
-  function getBaseUrl() {
-    return document.getElementById('baseUrl').value.replace(/\/$/, '');
-  }
+function getBase() {
+  return document.getElementById("baseUrl").value;
+}
 
-  function buildBody(cardBody) {
-    const inputs = cardBody.querySelectorAll('input[data-key], textarea[data-key]');
-    const body = {};
-    inputs.forEach(el => {
-      const v = el.value.trim();
-      if (v !== '') body[el.dataset.key] = v;
-    });
-    return Object.keys(body).length ? body : null;
-  }
+function render() {
+  const app = document.getElementById("app");
 
-  async function sendRequest(btn) {
-    const card     = btn.closest('.card');
-    const cardBody = btn.closest('.card-body');
-    const method   = card.dataset.method;
-    const path     = card.dataset.path;
-    const url      = getBaseUrl() + path;
-    const body     = buildBody(cardBody);
+  API.forEach(route => {
+    const div = document.createElement("div");
+    div.className = "card";
 
-    const resBox  = cardBody.querySelector('.response-box');
-    const curlBox = cardBody.querySelector('.curl-box');
+    div.innerHTML = `
+      <div class="title">
+        <span>${route.title}</span>
+        <span class="method">${route.method} ${route.path}</span>
+      </div>
 
-    btn.disabled = true;
-    btn.textContent = 'Sending…';
+      ${route.fields.map(f => `
+        <input class="field" placeholder="${f.placeholder}" data-key="${f.key}" type="${f.type}" />
+      `).join("")}
 
-    // Build curl snippet
-    const curlBody = body ? `-H 'Content-Type: application/json' \\\n  -d '${JSON.stringify(body)}'` : '';
-    curlBox.textContent = `curl -X ${method} '${url}' \\\n  ${curlBody}`;
-    curlBox.style.display = 'block';
-    curlBox.classList.remove('copied');
+      <button>Send</button>
+      <pre style="display:none"></pre>
+    `;
 
-    const t0 = Date.now();
-    try {
-      const opts = {
-        method,
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      };
-      if (body && method !== 'GET') opts.body = JSON.stringify(body);
+    const btn = div.querySelector("button");
+    const pre = div.querySelector("pre");
 
-      const res  = await fetch(url, opts);
-      const ms   = Date.now() - t0;
-      const text = await res.text();
+    btn.onclick = async () => {
+      const inputs = div.querySelectorAll("input");
+      const body = {};
 
-      let pretty = text;
-      try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch (_) {}
+      inputs.forEach(i => {
+        if (i.value) body[i.dataset.key] = i.value;
+      });
 
-      const cls = res.status < 300 ? 'status-2xx' : res.status < 500 ? 'status-4xx' : 'status-5xx';
+      try {
+        const res = await fetch(getBase() + route.path, {
+          method: route.method,
+          headers: { "Content-Type": "application/json" },
+          body: route.method !== "GET" ? JSON.stringify(body) : undefined
+        });
 
-      resBox.innerHTML = `
-        <div class="response-meta">
-          <span class="status-badge ${cls}">${res.status} ${res.statusText}</span>
-          <span class="response-time">${ms} ms</span>
-        </div>
-        <div class="response-body">${escHtml(pretty)}</div>
-      `;
-    } catch (err) {
-      const ms = Date.now() - t0;
-      resBox.innerHTML = `
-        <div class="response-meta">
-          <span class="status-badge status-err">Network Error</span>
-          <span class="response-time">${ms} ms</span>
-        </div>
-        <div class="response-body">${escHtml(String(err))}\n\n💡 Is your server running? Check for CORS too (see note below).</div>
-      `;
-    }
+        const text = await res.text();
 
-    resBox.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Send Request';
-  }
+        pre.style.display = "block";
+        pre.textContent = text;
 
-  function copyCurl(box) {
-    navigator.clipboard.writeText(box.textContent).then(() => {
-      box.classList.add('copied');
-      setTimeout(() => box.classList.remove('copied'), 2000);
-    });
-  }
+      } catch (err) {
+        pre.style.display = "block";
+        pre.textContent = "Error: " + err;
+      }
+    };
 
-  function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+    app.appendChild(div);
+  });
+}
+
+render();
 </script>
 
 </body>
