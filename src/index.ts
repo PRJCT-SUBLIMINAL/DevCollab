@@ -14,7 +14,7 @@ import {
 import {config} from "./config.js";
 
 const migrationClient = postgres(config.db.url, {max: 1});
-const PORT = 8080; // Replace with config soon
+const PORT = config.api.port; // Replace with config soon
 const app = express();
 
 app.use(express.json());

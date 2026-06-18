@@ -15,6 +15,7 @@ export const config = {
         migrationConfig: {migrationsFolder: "./src/db/migrations"} satisfies MigrationConfig,
     },
     api: {
-        jwtSecret: envOrThrow("JWT_SECRET")
+        jwtSecret: envOrThrow("JWT_SECRET"),
+        port: 8080
     }
 } as const;
