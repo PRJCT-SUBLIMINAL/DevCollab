@@ -1,44 +1,26 @@
 import express from "express";
-import postgres from "postgres";
-import cors from "cors";
-import path from "path";
-import {migrate} from "drizzle-orm/postgres-js/migrator";
-import {drizzle} from "drizzle-orm/postgres-js";
 
 import {
-    middlewareLogResponses,
-    middlewareCreateUser,
-    middlewareErrorHandler
-} from "./middleware.js";
+    setupMigration,
+    setupResponseLogs,
+    setupAPI,
+    setupTestPage,
+    setupErrorHandler,
+    setupServer
+} from "./setup.js";
 
-import {config} from "./config.js";
-
-const migrationClient = postgres(config.db.url, {max: 1});
-const PORT = config.api.port; // Replace with config soon
 const app = express();
 
-app.use(express.json());
-app.use(cors({
-    origin: true,
-    credentials: true
-}));
-
-app.get("/create-user", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "devcollab-tester.html"));
-});
-
 async function main() {
-    await migrate(drizzle(migrationClient), config.db.migrationConfig);
-
-    app.use(middlewareLogResponses);
-
-    app.post("/api/users", middlewareCreateUser);
-
-    app.use(middlewareErrorHandler);
-
-    app.listen(PORT, () => {
-        console.log(`Server is running at http://localhost:${PORT}`);
-    });
+    await setupMigration();
+    setupResponseLogs(app);
+    setupAPI(app);
+    setupTestPage(app);
+    setupErrorHandler(app);
+    setupServer(app);
 };
 
-main();
+main().catch((err)=>{
+    console.error("Failed to start application:\n", err);
+    process.exit(1);
+});
