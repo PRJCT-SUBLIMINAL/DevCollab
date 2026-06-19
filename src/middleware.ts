@@ -1,7 +1,7 @@
 import {ErrorRequestHandler, Request, Response, NextFunction} from "express";
 import {BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError} from "./classes.js";
 
-import {hashPassword, checkPasswordHash, makeJWT, makeRefreshToken, getBearerToken} from "./auth.js";
+import {hashPassword, checkPasswordHash, makeJWT, makeRefreshToken, getBearerToken, validateJWT} from "./auth.js";
 import {createUser, getUser} from "./db/queries/users.js";
 import {storeRefreshToken, findRefreshToken, getUserFromRefreshToken} from "./db/queries/refreshTokens.js";
 
@@ -49,13 +49,13 @@ export async function middlewareGetUser(req: Request, res: Response, next: NextF
 
         if (!user) {
             return next(new UnauthorizedError("Invalid login"));
-        }
+        };
 
         const isValid = await checkPasswordHash(req.body.password, user.hashedPassword);
 
         if (!isValid) {
             return next(new UnauthorizedError("Invalid login"));
-        }
+        };
 
         const token = makeJWT(user.id, 3600, config.api.jwtSecret);
         const refreshToken = makeRefreshToken();
@@ -67,25 +67,38 @@ export async function middlewareGetUser(req: Request, res: Response, next: NextF
         res.status(200).json({...userResponse, token, refreshToken});
     } catch (err) {
         return next(err);
-    }
-}
+    };
+};
 
 export async function middlewareRefreshUser(req: Request, res: Response) {
     const refreshToken = getBearerToken(req);
     const foundRefreshToken = await findRefreshToken(refreshToken);
     if (!foundRefreshToken || (foundRefreshToken.expiresAt < new Date()) || foundRefreshToken.revokedAt) {
         throw new UnauthorizedError("Can not find refresh token");
-    }
+    };
 
     const userId = await getUserFromRefreshToken(refreshToken);
     if (!userId) {
         throw new UnauthorizedError("User not authorized");
-    }
+    };
 
     const token = makeJWT(userId, 3600, config.api.jwtSecret);
 
     res.status(200).json({token});
-}
+};
+
+export async function middlewareAuth(req: Request, res: Response, next: NextFunction) {
+    try {
+        const token = getBearerToken(req);
+        const userId = validateJWT(token, config.api.jwtSecret);
+
+        res.locals.userId = userId;
+
+        next();
+    } catch (err) {
+        next(err);
+    };
+};
 
 export const middlewareErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     console.log(err);

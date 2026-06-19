@@ -22,7 +22,18 @@
   .base {
     display: flex;
     justify-content: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .authBar {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .token {
+    font-size: 12px;
+    opacity: 0.8;
+    word-break: break-all;
   }
 
   input {
@@ -63,12 +74,17 @@
 
   button {
     margin-top: 10px;
+    margin-right: 5px;
     padding: 8px 12px;
     background: #7c3aed;
     border: none;
     color: white;
     border-radius: 6px;
     cursor: pointer;
+  }
+
+  .danger {
+    background: #ef4444;
   }
 
   pre {
@@ -89,9 +105,16 @@
   <input id="baseUrl" value="http://localhost:8080" />
 </div>
 
+<div class="authBar">
+  <div class="token" id="tokenDisplay">No token</div>
+  <button class="danger" onclick="logout()">Logout</button>
+</div>
+
 <div id="app"></div>
 
 <script>
+let authToken = null;
+
 const API = [
   {
     method: "POST",
@@ -99,7 +122,7 @@ const API = [
     title: "Register User",
     fields: [
       { key: "email", type: "text", placeholder: "email" },
-      { key: "password", type: "password", placeholder: "password" }
+      { key: "password", type: "text", placeholder: "password" }
     ]
   },
   {
@@ -108,13 +131,33 @@ const API = [
     title: "Login User",
     fields: [
       { key: "email", type: "text", placeholder: "email" },
-      { key: "password", type: "password", placeholder: "password" }
+      { key: "password", type: "text", placeholder: "password" }
     ]
+  },
+  {
+    method: "GET",
+    path: "/users/me",
+    title: "Get Current User (JWT)",
+    fields: []
   }
 ];
 
 function getBase() {
   return document.getElementById("baseUrl").value;
+}
+
+function setToken(token) {
+  authToken = token;
+  if (!token) {
+    document.getElementById("tokenDisplay").textContent = "No token";
+    return;
+  }
+  document.getElementById("tokenDisplay").textContent =
+    "JWT: " + token.slice(0, 40) + "...";
+}
+
+function logout() {
+  setToken(null);
 }
 
 function render() {
@@ -149,10 +192,18 @@ function render() {
         if (i.value) body[i.dataset.key] = i.value;
       });
 
+      const headers = {
+        "Content-Type": "application/json"
+      };
+
+      if (authToken) {
+        headers["Authorization"] = "Bearer " + authToken;
+      }
+
       try {
         const res = await fetch(getBase() + route.path, {
           method: route.method,
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: route.method !== "GET" ? JSON.stringify(body) : undefined
         });
 
@@ -160,6 +211,14 @@ function render() {
 
         pre.style.display = "block";
         pre.textContent = text;
+
+        try {
+          const json = JSON.parse(text);
+
+          if (json.token) {
+            setToken(json.token);
+          }
+        } catch {}
 
       } catch (err) {
         pre.style.display = "block";

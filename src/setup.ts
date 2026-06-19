@@ -1,4 +1,4 @@
-import postgres from "postgres";
+// import postgres from "postgres";
 import cors from "cors";
 import path from "path";
 import express, {Express} from "express";
@@ -13,8 +13,6 @@ import {
 } from "./middleware.js";
 
 import {config} from "./config.js";
-
-const PORT = config.api.port;
 
 // export async function setupMigration() {
 //     const migrationClient = postgres(config.db.url, {max: 1});
@@ -54,8 +52,8 @@ export function setupErrorHandler(app: Express) {
 }
 
 export function setupServer(app: Express) {
-    app.listen(PORT, () => {
-        console.log(`Server is running at http://localhost:${PORT}`);
+    app.listen(config.api.port, () => {
+        console.log(`Server is running at http://localhost:${config.api.port}`);
     });
     console.log("Ready for requests...");
 }

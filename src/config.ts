@@ -7,17 +7,17 @@ export function envOrThrow(key: string) {
     const value = process.env[key];
     if (!value) throw new EnvironmentError(`Can't find ${key} in .env | Include .env at the root of your folder and initialize your key: ${key}=""`);
     return value;
-}
+};
 
 type APIConfig = {
     jwtSecret: string;
     port: number;
-}
+};
 
 type DBConfig = {
     url: string;
     migrationConfig: MigrationConfig;
-}
+};
 
 type Config = {
     db: DBConfig;

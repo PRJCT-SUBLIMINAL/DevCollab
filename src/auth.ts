@@ -37,17 +37,16 @@ export function makeJWT(userId: string, expiresIn: number, secret: string): stri
 }
 
 export function validateJWT(tokenString: string, secret: string): string {
-    let decodedPassword: JwtPayload;
+    let payload: JwtPayload;
     try {
-        decodedPassword = jwt.verify(tokenString, secret) as JwtPayload;
+        payload = jwt.verify(tokenString, secret) as JwtPayload;
     } catch {
-        throw new UnauthorizedError("Unable to validate password");
+        throw new UnauthorizedError("Invalid or expired token");
     }
 
+    if(typeof payload.sub !== "string") throw new UnauthorizedError("Invalid token payload");
 
-    if(!decodedPassword.sub) throw new UnauthorizedError("No user ID in token");
-
-    return decodedPassword.sub;
+    return payload.sub;
 }
 
 export function getBearerToken(req: Request): string {
