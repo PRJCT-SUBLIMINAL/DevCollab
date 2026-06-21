@@ -1,6 +1,6 @@
 Setup:
   
-  - nvm use
+  - nvm use (.nvmrc must be available in the root folder)
   - npm install
   - docker compose up -d
   
