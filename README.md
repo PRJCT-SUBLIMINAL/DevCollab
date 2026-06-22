@@ -6,8 +6,7 @@ Setup:
   
 Initialize Database:
 
-  - npm run generate
-  - npm run migrate
+  - npm run db:push
 
 Testing:
 
