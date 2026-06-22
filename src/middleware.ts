@@ -4,6 +4,8 @@ import {BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError} from 
 import {hashPassword, checkPasswordHash, makeJWT, makeRefreshToken, getBearerToken, validateJWT} from "./auth.js";
 import {createUser, getUser} from "./db/queries/users.js";
 import {storeRefreshToken, findRefreshToken, getUserFromRefreshToken} from "./db/queries/refreshTokens.js";
+import {createDevProfile, getDevProfile} from "./db/queries/devProfiles.js";
+import {Skill} from "./skills.js";
 
 import {config} from "./config.js";
 
@@ -16,6 +18,36 @@ export async function middlewareLogResponses(req: Request, res: Response, next: 
     });
     next();
 };
+
+export async function middlewareCreateDevProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+        const body = req.body;
+
+        if (!body) {
+            res.status(400).json({error: "Something went wrong"});
+            return;
+        };
+
+        const userId = res.locals.userId;
+
+        if (!body?.username || !body?.bio || !body?.skills) {
+            throw new BadRequestError("Wrong/Missing inputs for body");
+        };
+
+        const devProfile = await createDevProfile({
+            userId: userId,
+            username: body.username,
+            bio: body.bio,
+            skills: body.skills as Skill[]
+        });
+
+        if (!devProfile) throw new BadRequestError("Can't create duplicate profile.");
+
+        res.status(201).json(devProfile);
+    } catch (err) {
+        next(err);
+    }
+}
 
 export async function middlewareCreateUser(req: Request, res: Response, next: NextFunction) {
     try {
@@ -38,6 +70,27 @@ export async function middlewareCreateUser(req: Request, res: Response, next: Ne
         const { hashedPassword, ...userResponse } = user; 
 
         res.status(201).json(userResponse);
+    } catch (err) {
+        next(err);
+    };
+};
+
+export async function middlewareGetDevProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+        const body = req.body;
+
+        if (!body) {
+            res.status(404).json({error: "Something went wrong"});
+            return;
+        };
+
+        if (!body?.userId) throw new BadRequestError("Missing profile ID");
+
+        const devProfile = await getDevProfile(body.userId);
+
+        if (!devProfile) throw new BadRequestError("Can't find dev profile.");
+
+        res.status(200).json(devProfile);
     } catch (err) {
         next(err);
     };

@@ -6,6 +6,7 @@ import express, {Express} from "express";
 // import {drizzle} from "drizzle-orm/postgres-js";
 
 import { authRoute } from "./routes/auth.routes.js";
+import { profileRoute } from "./routes/profile.routes.js";
 
 import {
     middlewareLogResponses,
@@ -29,6 +30,7 @@ export function setupAPI(app: Express) {
     }));
 
     app.use("/auth", authRoute);
+    app.use("/profile", profileRoute);
 
     console.log("API routes registered.");
 }

@@ -1,4 +1,5 @@
 import { pgTable, timestamp, varchar, uuid, text, json } from "drizzle-orm/pg-core";
+import {Skill} from "../skills.js";
 
 export const users = pgTable("users", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -22,7 +23,8 @@ export const devProfiles = pgTable("dev_profiles", {
     userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
     username: varchar("username", {length:256}).notNull().unique(),
     bio: text("bio"),
-    skills: json("skills").$type<string[]>()
+    skills: json("skills").$type<Skill[]>()
 });
 
 export type NewUser = typeof users.$inferInsert;
+export type NewDevProfile = typeof devProfiles.$inferInsert;

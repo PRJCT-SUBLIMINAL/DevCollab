@@ -135,10 +135,23 @@ const API = [
     ]
   },
   {
-    method: "GET",
-    path: "/users/me",
-    title: "Get Current User (JWT)",
-    fields: []
+    method: "POST",
+    path: "/profile/create",
+    title: "Create Dev Profile",
+    fields: [
+      { key: "userId", type: "text", placeholder: "userId (from login response)" },
+      { key: "username", type: "text", placeholder: "username" },
+      { key: "bio", type: "text", placeholder: "bio" },
+      { key: "skills", type: "text", placeholder: "skills (comma-separated, e.g. JavaScript, Python)", transform: "array" }
+    ]
+  },
+  {
+    method: "POST",
+    path: "/profile/get",
+    title: "Get Dev Profile",
+    fields: [
+      { key: "userId", type: "text", placeholder: "userId" }
+    ]
   }
 ];
 
@@ -146,14 +159,15 @@ function getBase() {
   return document.getElementById("baseUrl").value;
 }
 
-function setToken(token) {
+function setToken(token, refreshToken) {
   authToken = token;
   if (!token) {
     document.getElementById("tokenDisplay").textContent = "No token";
     return;
   }
-  document.getElementById("tokenDisplay").textContent =
-    "JWT: " + token.slice(0, 40) + "...";
+  const display = ["JWT: " + token.slice(0, 40) + "..."];
+  if (refreshToken) display.push("Refresh: " + refreshToken.slice(0, 20) + "...");
+  document.getElementById("tokenDisplay").textContent = display.join(" | ");
 }
 
 function logout() {
@@ -174,7 +188,7 @@ function render() {
       </div>
 
       ${route.fields.map(f => `
-        <input class="field" placeholder="${f.placeholder}" data-key="${f.key}" type="${f.type}" />
+        <input class="field" placeholder="${f.placeholder}" data-key="${f.key}" type="${f.type}" ${f.transform ? `data-transform="${f.transform}"` : ""} />
       `).join("")}
 
       <button>Send</button>
@@ -189,7 +203,13 @@ function render() {
       const body = {};
 
       inputs.forEach(i => {
-        if (i.value) body[i.dataset.key] = i.value;
+        if (i.value) {
+          if (i.dataset.transform === "array") {
+            body[i.dataset.key] = i.value.split(",").map(s => s.trim()).filter(Boolean);
+          } else {
+            body[i.dataset.key] = i.value;
+          }
+        }
       });
 
       const headers = {
@@ -216,7 +236,13 @@ function render() {
           const json = JSON.parse(text);
 
           if (json.token) {
-            setToken(json.token);
+            setToken(json.token, json.refreshToken);
+          }
+
+          // Auto-fill userId only from user responses (register/login), not profile responses
+          if (json.id && json.email) {
+            const userIdInputs = document.querySelectorAll("input[data-key='userId']");
+            userIdInputs.forEach(el => { el.value = json.id; });
           }
         } catch {}
 
