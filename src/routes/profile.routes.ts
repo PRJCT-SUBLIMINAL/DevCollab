@@ -7,4 +7,4 @@ profileRoute.post("/create", middlewareAuth, middlewareCreateDevProfile);
 profileRoute.post("/update", middlewareAuth, middlewareUpdateDevProfile);
 profileRoute.post("/delete", middlewareAuth, middlewareDeleteDevProfile);
 
-profileRoute.get("/get", middlewareGetDevProfile);
+profileRoute.get("/get/:username", middlewareGetDevProfile);

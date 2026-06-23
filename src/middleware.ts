@@ -77,18 +77,13 @@ export async function middlewareCreateUser(req: Request, res: Response, next: Ne
 
 export async function middlewareGetDevProfile(req: Request, res: Response, next: NextFunction) {
     try {
-        const body = req.body;
+        const { username } = req.params;
 
-        if (!body) {
-            res.status(404).json({error: "Something went wrong"});
-            return;
-        };
+        if (!username) throw new BadRequestError("Missing username");
 
-        if (!body?.userId) throw new BadRequestError("Missing profile ID");
+        const devProfile = await getDevProfile(username);
 
-        const devProfile = await getDevProfile(body.userId);
-
-        if (!devProfile) throw new BadRequestError("Can't find dev profile.");
+        if (!devProfile) throw new NotFoundError("Can't find dev profile");
 
         res.status(200).json(devProfile);
     } catch (err) {
@@ -179,7 +174,7 @@ export async function middlewareDeleteDevProfile(req: Request, res: Response, ne
             throw new UnauthorizedError("User not authorized.");
         };
 
-        const devProfile = deleteDevProfile(userId);
+        const devProfile = await deleteDevProfile(userId);
 
         if (!devProfile) {
             res.status(404).json({ error: "Dev profile not found." });

@@ -8,8 +8,8 @@ export async function createDevProfile(devProfile: NewDevProfile) {
     return result;
 }
 
-export async function getDevProfile(userId: string) {
-    const [result] = await db.select().from(devProfiles).where(eq(devProfiles.userId, userId));
+export async function getDevProfile(username: string) {
+    const [result] = await db.select().from(devProfiles).where(eq(devProfiles.username, username));
     return result;
 }
 
