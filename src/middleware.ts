@@ -4,7 +4,7 @@ import {BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError} from 
 import {hashPassword, checkPasswordHash, makeJWT, makeRefreshToken, getBearerToken, validateJWT} from "./auth.js";
 import {createUser, getUser} from "./db/queries/users.js";
 import {storeRefreshToken, findRefreshToken, getUserFromRefreshToken} from "./db/queries/refreshTokens.js";
-import {createDevProfile, getDevProfile, updateDevProfile} from "./db/queries/devProfiles.js";
+import {createDevProfile, getDevProfile, updateDevProfile, deleteDevProfile} from "./db/queries/devProfiles.js";
 import {Skill} from "./skills.js";
 
 import {config} from "./config.js";
@@ -134,11 +134,11 @@ export async function middlewareUpdateDevProfile(req: Request, res: Response, ne
 
         const userId = res.locals.userId;
 
-        if (!body?.username || !body?.bio || body?.skills) {
+        if (!body?.username || !body?.bio || !body?.skills) {
             throw new BadRequestError("Wrong/Missing inputs for body.");
         }
 
-        const devProfile = updateDevProfile(userId, {
+        const devProfile = await updateDevProfile(userId, {
             username: body.username,
             bio: body.bio,
             skills: body.skills
@@ -182,7 +182,7 @@ export async function middlewareDeleteDevProfile(req: Request, res: Response, ne
         const devProfile = deleteDevProfile(userId);
 
         if (!devProfile) {
-            res.send(404).json({ error: "Dev profile not found." });
+            res.status(404).json({ error: "Dev profile not found." });
             return;
         }
 
