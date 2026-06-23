@@ -12,3 +12,17 @@ export async function getDevProfile(userId: string) {
     const [result] = await db.select().from(devProfiles).where(eq(devProfiles.userId, userId));
     return result;
 }
+
+export async function updateDevProfile(userId: string, devProfile: NewDevProfile) {
+    const [result] = await db.update(devProfiles).set(devProfile).where(eq(devProfiles.userId, userId)).returning();
+    return result;
+}
+
+export async function deleteDevProfile(userId: string) {
+    const [result] = await db.delete(devProfiles).where(eq(devProfiles.userId, userId)).returning();
+    return result;
+}
+
+export async function deleteAllDevProfiles() {
+    await db.delete(devProfiles);
+}

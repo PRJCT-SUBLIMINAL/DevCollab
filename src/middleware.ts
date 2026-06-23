@@ -4,7 +4,7 @@ import {BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError} from 
 import {hashPassword, checkPasswordHash, makeJWT, makeRefreshToken, getBearerToken, validateJWT} from "./auth.js";
 import {createUser, getUser} from "./db/queries/users.js";
 import {storeRefreshToken, findRefreshToken, getUserFromRefreshToken} from "./db/queries/refreshTokens.js";
-import {createDevProfile, getDevProfile} from "./db/queries/devProfiles.js";
+import {createDevProfile, getDevProfile, updateDevProfile} from "./db/queries/devProfiles.js";
 import {Skill} from "./skills.js";
 
 import {config} from "./config.js";
@@ -123,6 +123,38 @@ export async function middlewareGetUser(req: Request, res: Response, next: NextF
     };
 };
 
+export async function middlewareUpdateDevProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+        const body = req.body;
+
+        if (!body) {
+            res.status(400).json({ error: "Something went wrong" });
+            return;
+        };
+
+        const userId = res.locals.userId;
+
+        if (!body?.username || !body?.bio || body?.skills) {
+            throw new BadRequestError("Wrong/Missing inputs for body.");
+        }
+
+        const devProfile = updateDevProfile(userId, {
+            username: body.username,
+            bio: body.bio,
+            skills: body.skills
+        });
+
+        if (!devProfile) {
+            throw new NotFoundError("Dev profile not found, have you created one?");
+        };
+
+        res.status(200).json(devProfile);
+
+    } catch(err) {
+        next(err);
+    }
+}
+
 export async function middlewareRefreshUser(req: Request, res: Response) {
     const refreshToken = getBearerToken(req);
     const foundRefreshToken = await findRefreshToken(refreshToken);
@@ -139,6 +171,26 @@ export async function middlewareRefreshUser(req: Request, res: Response) {
 
     res.status(200).json({token});
 };
+
+export async function middlewareDeleteDevProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+        const userId = res.locals.userId;
+        if (!userId) {
+            throw new UnauthorizedError("User not authorized.");
+        };
+
+        const devProfile = deleteDevProfile(userId);
+
+        if (!devProfile) {
+            res.send(404).json({ error: "Dev profile not found." });
+            return;
+        }
+
+        res.status(200).json(devProfile);
+    } catch (err) {
+        next(err);
+    }
+}
 
 export async function middlewareAuth(req: Request, res: Response, next: NextFunction) {
     try {
