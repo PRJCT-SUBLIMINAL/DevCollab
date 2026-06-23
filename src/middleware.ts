@@ -192,6 +192,8 @@ export async function middlewareAuth(req: Request, res: Response, next: NextFunc
         const token = getBearerToken(req);
         const userId = validateJWT(token, config.api.jwtSecret);
 
+        if (!userId) throw new UnauthorizedError("User not authorized.")
+
         res.locals.userId = userId;
 
         next();
